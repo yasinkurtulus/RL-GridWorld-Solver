@@ -49,33 +49,19 @@ class PolicyIteration:
         self.totalSteps = 0
 
     def compute_value_under_policy(self):
-        """
-        Mevcut politikaya göre durumların değerini (V) hesaplar.
-        (Politika Değerlendirme Aşaması)
-        """
         self.V = np.zeros(self.stateCount)
-        
         for i in range(self.maxIterValue):
             last_V = np.copy(self.V)
-            
-            for state_index in range(self.stateCount):
-                current_state = self.env.statespace[state_index]
-                
+            for s in range(self.stateCount):
+                current_state = self.env.statespace[s]
                 for action in self.env.actionspace:
                     next_state = self.env.next_state(current_state, action)
                     reward = self.env.compute_reward(next_state)
-                    next_state_index = self.env.stateDict[next_state]
-                    
-                    self.Q[state_index][action] = reward + self.gamma * last_V[next_state_index]
-                
-                if self.mode == 'debug':
-                    print("Q(s={}):{}".format(current_state, self.Q[state_index]))
-                
-                self.V[state_index] = max(self.Q[state_index])
-                
+                    ns_idx = self.env.stateDict[next_state]
+                    self.Q[s][action] = reward + self.gamma * last_V[ns_idx]
+                # Fark burada: max yerine politikanın eylemi
+                self.V[s] = self.Q[s][self.Policy[s]]
             if np.sum(np.fabs(last_V - self.V)) <= self.th:
-                if self.mode == 'debug':
-                    print(f"Yakınsama {i}. iterasyonda başarıldı. Değer döngüsü kırılıyor!")
                 break
 
     def iterate_policy(self):
